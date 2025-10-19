@@ -9,24 +9,16 @@ from src import api
 version = "v1.0"
 
 
-def Dabase():
+def Dabase(config=None):
+    """Main function"""
+    if config is None:
+        config = api.Config()
 
-    config = api.Config()
+        if len(sys.argv) > 1:
+            args = args_setup()
+            config.args_parsed(args)
 
-    if len(sys.argv) > 1:
-        args = args_setup()
-        config.args_parsed(args)
-    else:
-        config.args(
-            src="./files/test/",
-            file_type="csv",
-            date_start="2025-10-10",
-            output="Out/test.csv",
-        )
-
-    print(config.info())
-    df_db = config.get_df()
-    print(df_db)
+    config.get_df()
     config.create()
 
 
@@ -64,19 +56,24 @@ def args_setup():
     )
 
     parser.add_argument(
+        "--date-col",
+        help="Date column in dataframe",
+    )
+
+    parser.add_argument(
         "-ds",
-        "--date-start (%Y-%d-%m %H:%M:%s)",
-        help="Start day of the date requested.",
+        "--date-start",
+        help="Start day of the date requested. format: (%Y-%d-%m %H:%M:%s)",
     )
 
     parser.add_argument(
         "-de",
-        "--date-end (%Y-%d-%m %H:%M:%s)",
-        help="End day of the date requested.",
+        "--date-end",
+        help="End day of the date requested. format: (%Y-%d-%m %H:%M:%s)",
     )
 
     return parser.parse_args()
 
 
 if __name__ == "__main__":
-    Dabase()
+    Dabase(None)

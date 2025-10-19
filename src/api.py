@@ -11,27 +11,38 @@ import dabase
 
 class Config:
 
+    src = None
     file_type = None
+    date_col = None
     date_start = None
     date_end = None
     output = None
 
     df = None
 
-    def args(self, src, file_type=None, date_start=None, date_end=None, output=None):
-
+    def args(
+        self,
+        src,
+        date_col=None,
+        file_type=None,
+        date_start=None,
+        date_end=None,
+        output=None,
+    ):
         self.src = src
+        self.date_col = date_col
         self.file_type = file_type
-        self.date_start = date_start
-        self.date_end = date_end
+        self.date_start = pd.to_datetime(date_start)
+        self.date_end = pd.to_datetime(date_end)
         self.output = output
 
     def args_parsed(self, args):
 
         self.src = args.src
+        self.date_col = args.date_col
         self.file_type = args.file
-        self.date_start = args.date_start
-        self.date_end = args.date_end
+        self.date_start = pd.to_datetime(args.date_start)
+        self.date_end = pd.to_datetime(args.date_end)
         self.output = args.output
 
     def info(self):
@@ -45,6 +56,16 @@ class Config:
     def get_df(self):
         self.df = get_db(self.src)
 
+        if self.date_col is not None:
+
+            if self.date_start:
+                date = self.date_start.date()
+                self.df = self.df.query(f"{self.date_col} >= @date")
+
+            if self.date_end:
+                date = self.date_end.date()
+                self.df = self.df.query(f"{self.date_col} <= @date")
+
     def create(self):
         if self.file_type == "csv":
             self.df.to_csv(self.output)
@@ -57,8 +78,7 @@ class Config:
 
 
 def get_db(src):
-    print(src)
-
+    """Get df from files in src."""
     try:
         csv_list = os.listdir(src)
 
@@ -110,7 +130,7 @@ def get_db(src):
             continue
 
         print(
-            f"[ Database {dabase.version} - {datetime.now().strftime('%H:%M:%S')} ] Processing: {file_name}"
+            f"[ Dabase {dabase.version} - {datetime.now().strftime('%H:%M:%S')} ] Processing: {file_name}"
         )
 
         if isinstance(new_df, int):
